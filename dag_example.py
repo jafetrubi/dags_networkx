@@ -21,7 +21,7 @@ for file in files:
     dictionary[file] = [random.choice(words) for i in range(0,2)]
 
 # create our edge nodes according to our data structure
-G = nx.DiGraph()
+G = nx.Graph()
 for files,tags in dictionary.items(): # iterating through dictionary items
     for tag in tags:
         G.add_edge(tag,files) # creating relationship between tag and files in our graph
@@ -38,4 +38,35 @@ args = dict(node_size=400,alpha=0.4,font_size=8,with_labels=True,node_color='b')
 nx.draw(G, pos, **args)
 plt.savefig('G.png',format='PNG') # saving figure to use picture later
 plt.show()
-plt.clf()
+plt.clf() # this closes the graph
+
+# shell graph
+pos = nx.shell_layout(G)
+args = dict(node_size=400,alpha=0.4,font_size=8,with_labels=True,node_color='b')
+nx.draw(G, pos, **args)
+plt.savefig('G_shell.png',format='PNG') # saving figure to use picture later
+plt.show()
+plt.clf() # this closes the graph
+
+# create our graph for DAGs
+G = nx.DiGraph()
+G.add_node('ingest_from_s3.py')
+G.add_edge('ingest_from_s3.py','load_from_s3.py')
+G.add_edge('load_from_s3.py','validate_data.py')
+G.add_edge('load_from_s3.py','clean_data.py')
+G.add_edge('clean_data.py','dump_into_snowflake.py')
+G.add_edge('validate_data.py','dump_into_snowflake.py')
+
+for layer, nodes in enumerate(nx.topological_generations(G)):
+    # `multipartite_layout` expects the layer as a node attribute, so add the
+    # numeric layer value as a node attribute
+    for node in nodes:
+        G.nodes[node]["layer"] = layer
+
+pos = nx.multipartite_layout(G, subset_key="layer")
+
+args = dict(node_size=400,alpha=0.4,font_size=8,with_labels=True,node_color='b',arrows=True)
+nx.draw(G, pos, **args)
+plt.savefig('G_dag.png',format='PNG') # saving figure to use picture later
+plt.show()
+plt.clf() # this closes the graph
