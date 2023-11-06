@@ -58,14 +58,13 @@ G.add_edge('clean_data.py','dump_into_snowflake.py')
 G.add_edge('validate_data.py','dump_into_snowflake.py')
 
 for layer, nodes in enumerate(nx.topological_generations(G)):
-    # `multipartite_layout` expects the layer as a node attribute, so add the
-    # numeric layer value as a node attribute
     for node in nodes:
         G.nodes[node]["layer"] = layer
 
 pos = nx.multipartite_layout(G, subset_key="layer")
 
 args = dict(node_size=400,alpha=0.4,font_size=8,with_labels=True,node_color='b',arrows=True)
+plt.figure(figsize=(9,9))
 nx.draw(G, pos, **args)
 plt.savefig('G_dag.png',format='PNG') # saving figure to use picture later
 plt.show()
